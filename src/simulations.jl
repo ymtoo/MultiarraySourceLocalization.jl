@@ -1,7 +1,3 @@
-using Distributions
-using LinearAlgebra
-using Plots
-
 """
 Receiver array #1 position in the global frame. 
 """
@@ -18,11 +14,18 @@ Sensor position of receiver array #1 in the global frame.
 srx1pos = rx1pos .+ [0.5002 1.0004 0.0000 0.5002
                      0.8663 0.0000 0.0000 0.28877
                      0.0000 0.0000 0.0000 0.8170]
+
+                     """
+Sensor position of receiver array #2 in the global frame.
+"""
+srx2pos = rx2pos .+ [0.5002 1.0004 0.0000 0.5002
+                     0.8663 0.0000 0.0000 0.28877
+                     0.0000 0.0000 0.0000 0.8170]
           
 """
 Transmitter position in the global frame at t=0
 """
-txpos0 = reshape([100 -200 5], 3, 1)
+txpos0 = [100, -200, 5]
 
 """
 Horizontal velocity vector.
@@ -69,26 +72,33 @@ getpropagateunitvector(angles::Tuple) = getpropagateunitvector(angles[1], angles
 """
 Simulation.
 """
-function simulate()
-    rotateangles = [5, -10, 3]
-    σ = 0.1
+function simulate(;txpos=txpos0, 
+                  rotateangles=[5, -10, 3], 
+                  σ=0.1)
+    # rotateangles = [5, -10, 3]
+    # σ = 0.1
 
-    t = 0
-    txposs = getpath(txpos0, v, t)
+    # t = 0
+    # txposs = getpath(txpos0, v, t)
 
     compassrx1 = rotateangles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
-    truedoarx1 = getdoa(txposs[:,1], rx1pos)
-    measuredoarx1 = getdoa(txposs[:,1], rx1pos, deg2rad.(rotateangles))
+    # truedoarx1 = getdoa(txpos, rx1pos)
+    measuredoarx1 = getdoa(txpos, rx1pos, deg2rad.(rotateangles))
     u1 = rotation(deg2rad.(compassrx1)) * getpropagateunitvector(measuredoarx1)
 
     compassrx2 = rotateangles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
-    truedoarx2 = getdoa(txposs[:,1], rx2pos)
-    measuredoarx2 = getdoa(txposs[:,1], rx2pos, deg2rad.(rotateangles))
+    # truedoarx2 = getdoa(txpos, rx2pos)
+    measuredoarx2 = getdoa(txpos, rx2pos, deg2rad.(rotateangles))
     u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(measuredoarx2)
 
-    p = plotconfig(rx1pos, rx2pos, 250 .* u1, 250 .* u2)
-    scatter!(p, [txposs[1,1]], [txposs[2,1]]; color="black", label="true")
-    p
+    sourcepos = localize(rx1pos, rx2pos, u1, u2)
+    rms(txpos - sourcepos)
+    # U = [-u1 u2]
+    # a⃗ = rx1pos - rx2pos
+    # λ⃗ = inv(U'U) * U'a⃗
+    # p = plotconfig(rx1pos, rx2pos, λ⃗[1] .* u1, λ⃗[2] .* u2)
+    # scatter!(p, [txposs[1,1]], [txposs[2,1]]; color="black", label="true")
+    # p
 end
 
 function plotconfig(rx1pos, rx2pos, txpos0)
