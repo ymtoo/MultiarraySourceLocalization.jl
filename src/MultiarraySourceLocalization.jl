@@ -1,4 +1,4 @@
-module MultiarraySL
+module MultiarraySourceLocalization
 
 include("simulations.jl")
 
