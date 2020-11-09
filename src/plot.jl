@@ -15,6 +15,7 @@ function plotconfig(rx1pos, rx2pos, txpos, esttxpos=nothing)
     y = [rx1pos[2],rx2pos[2]]
     z = [rx1pos[3],rx2pos[3]]
     scatter(x, y; color="blue", label="")
+    annotate!([(x, y .+ 0.02, text.(["rx₁", "rx₂"], :top))])
     if esttxpos !== nothing
         v1 = esttxpos - rx1pos
         v2 = esttxpos - rx2pos
