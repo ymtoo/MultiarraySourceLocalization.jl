@@ -9,4 +9,3 @@ function localize(rx1pos, rx2pos, u1, u2)
     v1, v2 = getpropagatevectors(rx1pos, rx2pos, u1, u2)
     rx1pos + v1
 end
-

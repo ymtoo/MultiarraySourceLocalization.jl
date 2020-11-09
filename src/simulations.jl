@@ -25,7 +25,7 @@ srx2pos = rx2pos .+ [0.5002 1.0004 0.0000 0.5002
 """
 Transmitter position in the global frame at t=0
 """
-txpos0 = [100, -200, 5]
+#txpos0 = [100, -200, 5]
 
 """
 Horizontal velocity vector.
@@ -70,11 +70,11 @@ getpropagateunitvector(ϕ, θ) = reshape([cos(ϕ)cos(θ), sin(ϕ)cos(θ), sin(θ
 getpropagateunitvector(angles::Tuple) = getpropagateunitvector(angles[1], angles[2])
 
 """
-Simulation.
+Simulation the estimated source position.
 """
-function simulate(;txpos=txpos0, 
-                  rotateangles=[5, -10, 3], 
-                  σ=0.1)
+function simulate(;txpos, 
+                  rotateangles=[0, 0, 0], 
+                  σ=0.)
     # rotateangles = [5, -10, 3]
     # σ = 0.1
 
@@ -92,7 +92,8 @@ function simulate(;txpos=txpos0,
     u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(measuredoarx2)
 
     sourcepos = localize(rx1pos, rx2pos, u1, u2)
-    rms(txpos - sourcepos)
+#    rms(txpos - sourcepos)
+
     # U = [-u1 u2]
     # a⃗ = rx1pos - rx2pos
     # λ⃗ = inv(U'U) * U'a⃗
@@ -100,23 +101,3 @@ function simulate(;txpos=txpos0,
     # scatter!(p, [txposs[1,1]], [txposs[2,1]]; color="black", label="true")
     # p
 end
-
-function plotconfig(rx1pos, rx2pos, txpos0)
-    v1 = txpos0 - rx1pos
-    v2 = txpos0 - rx2pos
-    plotconfig(rx1pos, rx2pos, v1, v2)
-end
-
-function plotconfig(rx1pos, rx2pos, v1, v2)
-    p = plot()
-    x = [rx1pos[1],rx2pos[1]]
-    y = [rx1pos[2],rx2pos[2]]
-    z = [rx1pos[3],rx2pos[3]]
-    scatter!(p, x, y; color="blue", label="")
-    u = [v1[1],v2[1]]
-    v = [v1[2],v2[2]]
-    w = [v1[3],v2[3]]
-    quiver!(p, x, y, quiver=(u,v); xlabel="x (m)", ylabel="y (m)", color="red") # 3D not working
-    p
-end
-
