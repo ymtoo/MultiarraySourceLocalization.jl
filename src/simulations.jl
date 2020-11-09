@@ -73,7 +73,8 @@ getpropagateunitvector(angles::Tuple) = getpropagateunitvector(angles[1], angles
 Simulation the estimated source position.
 """
 function simulate(;txpos, 
-                  rotateangles=[0, 0, 0], 
+                  rx1angles=[0, 0, 0], 
+                  rx2angles=[0, 0, 0],
                   σ=0.)
     # rotateangles = [5, -10, 3]
     # σ = 0.1
@@ -81,23 +82,16 @@ function simulate(;txpos,
     # t = 0
     # txposs = getpath(txpos0, v, t)
 
-    compassrx1 = rotateangles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
+    compassrx1 = rx1angles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
     # truedoarx1 = getdoa(txpos, rx1pos)
-    measuredoarx1 = getdoa(txpos, rx1pos, deg2rad.(rotateangles))
+    measuredoarx1 = getdoa(txpos, rx1pos, deg2rad.(rx1angles))
     u1 = rotation(deg2rad.(compassrx1)) * getpropagateunitvector(measuredoarx1)
 
-    compassrx2 = rotateangles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
+    compassrx2 = rx2angles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
     # truedoarx2 = getdoa(txpos, rx2pos)
-    measuredoarx2 = getdoa(txpos, rx2pos, deg2rad.(rotateangles))
+    measuredoarx2 = getdoa(txpos, rx2pos, deg2rad.(rx2angles))
     u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(measuredoarx2)
 
     sourcepos = localize(rx1pos, rx2pos, u1, u2)
 #    rms(txpos - sourcepos)
-
-    # U = [-u1 u2]
-    # a⃗ = rx1pos - rx2pos
-    # λ⃗ = inv(U'U) * U'a⃗
-    # p = plotconfig(rx1pos, rx2pos, λ⃗[1] .* u1, λ⃗[2] .* u2)
-    # scatter!(p, [txposs[1,1]], [txposs[2,1]]; color="black", label="true")
-    # p
 end
