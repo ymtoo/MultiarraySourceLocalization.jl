@@ -24,7 +24,7 @@ histogram(rmses; xlabel="RMSE (m)")
 ![window](images/rmse.png)
 ```julia
 xtxposs = 50:10:200
-ytxposs = -200:10:200
+ytxposs = -350:10:200
 ztxposs = -5:1:5
 μ = zeros(length(xtxposs), length(ytxposs), length(ztxposs))
 for (i, xtxpos) in enumerate(xtxposs)
