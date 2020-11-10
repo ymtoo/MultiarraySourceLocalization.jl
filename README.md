@@ -22,3 +22,21 @@ rmses = rms(txpos .- esttxposs; dims=1)
 histogram(rmses; xlabel="RMSE (m)")
 ```
 ![window](images/rmse.png)
+```julia
+xtxposs = 50:10:200
+ytxposs = -200:10:200
+ztxposs = -5:1:5
+μ = zeros(length(xtxposs), length(ytxposs), length(ztxposs))
+for (i, xtxpos) in enumerate(xtxposs)
+    for (j, ytxpos) in enumerate(ytxposs)
+        for (k, ztxpos) in enumerate(ztxposs)
+            txpostmp = [xtxpos,ytxpos,ztxpos]
+            esttxposs = hcat([esttxpostmp = simulate(txpos=txpostmp, rx1angles=rx1angles, 
+                  rx2angles=rx2angles, σ=σ) for i in 1:nrealizations]...)
+            μ[i,j,k] = sum(rms(txpostmp .- esttxposs; dims=1)) / nrealizations
+        end
+    end
+end
+heatmap(xtxposs,ytxposs, μ[:,:,6]; xlabel="x (m)", ylabel="y (m)")
+```
+![window](images/rmse-map.png)
