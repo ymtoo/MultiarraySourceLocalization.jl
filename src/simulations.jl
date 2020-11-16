@@ -67,10 +67,12 @@ end
 Get propagating vector.
 """
 getpropagateunitvector(ϕ, θ) = reshape([cos(ϕ)cos(θ), sin(ϕ)cos(θ), sin(θ)], 3, 1)
-getpropagateunitvector(angles::Tuple) = getpropagateunitvector(angles[1], angles[2])
+getpropagateunitvector(angles::Tuple) = getpropagateunitvector(angles...)
 
 """
-Simulation the estimated source position.
+Simulate the estimated source position given the true source position `txpos`,
+rotation angles of array #1 and #2 (`rx1angles`, rx2angles), standard deviation of
+the compass measurements `σ` and position error of array #2 `ϵ`.
 """
 function simulate(;txpos, 
                   rx1angles=[0, 0, 0], 
@@ -78,18 +80,18 @@ function simulate(;txpos,
                   σ=0.,
                   ϵ=0.)
     σyaw, σpitch, σroll = σ isa Number ? (σ, σ, σ) : (σ[1], σ[2], σ[3])
-    rx2posest = rx2pos + (ϵ isa Number ? ϵ .* rx2pos ./ norm(rx2pos) : ϵ)
+    n⃗ = cross(txpos - rx1pos, txpos - rx2pos)
+    e⃗ = cross(n⃗, txpos - rx2pos)
+    e⃗ ./= norm(e⃗)
+    rx2posest = rx2pos + (ϵ isa Number ? ϵ .* e⃗ : ϵ)
 
     compassrx1 = rx1angles .+ [rand(Normal(0, σyaw)), rand(Normal(0, σpitch)), rand(Normal(0, σroll))]
-    # truedoarx1 = getdoa(txpos, rx1pos)
-    measuredoarx1 = getdoa(txpos, rx1pos, deg2rad.(rx1angles))
-    u1 = rotation(deg2rad.(compassrx1)) * getpropagateunitvector(measuredoarx1)
+    doarx1 = getdoa(txpos, rx1pos, deg2rad.(rx1angles))
+    u1 = rotation(deg2rad.(compassrx1)) * getpropagateunitvector(doarx1)
 
     compassrx2 = rx2angles .+ [rand(Normal(0, σyaw)), rand(Normal(0, σpitch)), rand(Normal(0, σroll))]
-    # truedoarx2 = getdoa(txpos, rx2pos)
-    measuredoarx2 = getdoa(txpos, rx2pos, deg2rad.(rx2angles))
-    u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(measuredoarx2)
+    doarx2 = getdoa(txpos, rx2pos, deg2rad.(rx2angles))
+    u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(doarx2)
 
     sourcepos = localize(rx1pos, rx2posest, u1, u2)
-#    rms(txpos - sourcepos)
 end

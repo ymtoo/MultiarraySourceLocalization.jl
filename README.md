@@ -45,7 +45,7 @@ function plotrmsemap(;ϵ=0.)
             end
         end
     end
-    heatmap(xtxposs, ytxposs, dropdims(maximum(μ; dims=3); dims=3)'; xlabel="x (m)", ylabel="y (m)")
+    heatmap(xtxposs, ytxposs, dropdims(sum(μ; dims=3)/length(ztxposs); dims=3)'; xlabel="x (m)", ylabel="y (m)")
 end
 
 plotrmsemap(ϵ=0.)
