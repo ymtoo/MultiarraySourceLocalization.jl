@@ -9,20 +9,26 @@ using Plots, MultiarraySourceLocalization
 txpos = [100, -100, 5]
 rx1angles = [5, -10, -3]
 rx2angles = [8, 6, 0.2]
-σ = 0.1
-esttxpos = simulate(txpos=txpos, rx1angles=rx1angles, rx2angles=rx2angles, σ=σ)
-plotconfig(rx1pos, rx2pos, txpos, esttxpos)
-```
-![window](images/config.png)
-```julia
+σ = (0.2, 0.01, 0.01)
 nrealizations = 1000
-esttxposs = hcat([esttxpostmp = simulate(txpos=txpos, rx1angles=rx1angles, 
-                  rx2angles=rx2angles, σ=σ) for i in 1:nrealizations]...)
-rmses = rms(txpos .- esttxposs; dims=1)
-histogram(rmses; xlabel="RMSE (m)")
+esttxposs1 = hcat([esttxpostmp = simulate(txpos=txpos, rx1angles=rx1angles, 
+                   rx2angles=rx2angles, σ=σ, ϵ=0.) for i in 1:nrealizations]...)
+esttxposs2 = hcat([esttxpostmp = simulate(txpos=txpos, rx1angles=rx1angles, 
+                   rx2angles=rx2angles, σ=σ, ϵ=1.0) for i in 1:nrealizations]...)
+esttxposs3 = hcat([esttxpostmp = simulate(txpos=txpos, rx1angles=rx1angles, 
+                   rx2angles=rx2angles, σ=σ, ϵ=-1.0) for i in 1:nrealizations]...)
+rmses1 = rms(txpos .- esttxposs1; dims=1)
+rmses2 = rms(txpos .- esttxposs2; dims=1)
+rmses3 = rms(txpos .- esttxposs3; dims=1)
+histogram(rmses1; xlabel="RMSE (m)", label="without rx postion error")
+histogram!(rmses2; xlabel="RMSE (m)", label="with rx postion error #1")
+histogram!(rmses3; xlabel="RMSE (m)", label="with rx postion error #2")
 ```
 ![window](images/rmse.png)
 ```julia
+using AbstractPlotting, GLMakie
+GLMakie.activate!()
+
 xtxposs = 50:10:200
 ytxposs = -350:10:200
 ztxposs = -5:1:5
@@ -37,6 +43,9 @@ for (i, xtxpos) in enumerate(xtxposs)
         end
     end
 end
-heatmap(xtxposs,ytxposs, μ[:,:,6]; xlabel="x (m)", ylabel="y (m)")
+vplot = volume(μ; transparency=true)
+AbstractPlotting.xlabel!(vplot, "x (m)")
+AbstractPlotting.ylabel!(vplot, "y (m)")
+AbstractPlotting.zlabel!(vplot, "z (m)")
 ```
 ![window](images/rmse-map.png)

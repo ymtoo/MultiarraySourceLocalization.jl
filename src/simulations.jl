@@ -41,9 +41,9 @@ getpath(txpos0, v, t) = getpath(txpos0, v, reshape(collect(t), 1, :))
 """
 Rotation matrix.
 
-α=roll
+α=yaw
 β=pitch
-ψ=yawn
+ψ=roll
 """
 rotation(α, β, ψ) = [cos(α)cos(β) cos(α)sin(β)sin(ψ)-sin(α)cos(ψ) cos(α)sin(β)cos(ψ)+sin(α)sin(ψ)
                      sin(α)cos(β) sin(α)sin(β)sin(ψ)+cos(α)cos(ψ) sin(α)sin(β)cos(ψ)-cos(α)sin(ψ)
@@ -75,23 +75,21 @@ Simulation the estimated source position.
 function simulate(;txpos, 
                   rx1angles=[0, 0, 0], 
                   rx2angles=[0, 0, 0],
-                  σ=0.)
-    # rotateangles = [5, -10, 3]
-    # σ = 0.1
+                  σ=0.,
+                  ϵ=0.)
+    σyaw, σpitch, σroll = σ isa Number ? (σ, σ, σ) : (σ[1], σ[2], σ[3])
+    rx2posest = rx2pos + (ϵ isa Number ? ϵ .* rx2pos ./ norm(rx2pos) : ϵ)
 
-    # t = 0
-    # txposs = getpath(txpos0, v, t)
-
-    compassrx1 = rx1angles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
+    compassrx1 = rx1angles .+ [rand(Normal(0, σyaw)), rand(Normal(0, σpitch)), rand(Normal(0, σroll))]
     # truedoarx1 = getdoa(txpos, rx1pos)
     measuredoarx1 = getdoa(txpos, rx1pos, deg2rad.(rx1angles))
     u1 = rotation(deg2rad.(compassrx1)) * getpropagateunitvector(measuredoarx1)
 
-    compassrx2 = rx2angles .+ [rand(Normal(0, σ)), rand(Normal(0, σ)), rand(Normal(0, σ))]
+    compassrx2 = rx2angles .+ [rand(Normal(0, σyaw)), rand(Normal(0, σpitch)), rand(Normal(0, σroll))]
     # truedoarx2 = getdoa(txpos, rx2pos)
     measuredoarx2 = getdoa(txpos, rx2pos, deg2rad.(rx2angles))
     u2 = rotation(deg2rad.(compassrx2)) * getpropagateunitvector(measuredoarx2)
 
-    sourcepos = localize(rx1pos, rx2pos, u1, u2)
+    sourcepos = localize(rx1pos, rx2posest, u1, u2)
 #    rms(txpos - sourcepos)
 end
